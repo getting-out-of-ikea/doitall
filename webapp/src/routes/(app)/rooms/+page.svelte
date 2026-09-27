@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-
-	/** Coincide con la regex dell'endpoint `/api/livekit/token`. */
-	const ROOM_ID_REGEX = /^[a-zA-Z0-9_-]{1,64}$/;
+	import { isValidRoomId } from '$lib/livekit/room-id';
 
 	let roomName = $state('');
 	let error = $state<string | null>(null);
@@ -19,7 +17,8 @@
 			return;
 		}
 
-		if (!ROOM_ID_REGEX.test(trimmed)) {
+		// Stessa validazione dell'endpoint `/api/livekit/token`: evita un 400 inutile.
+		if (!isValidRoomId(trimmed)) {
 			error =
 				'Nome non valido: usa solo lettere, numeri, underscore e trattini (max 64 caratteri).';
 			return;
