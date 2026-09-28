@@ -1,3 +1,5 @@
+npm -prefix webapp run dev
+
 # Video App
 
 App web di videocomunicazione: autenticazione con Supabase, video/audio in tempo reale con LiveKit, interfaccia SvelteKit + Tailwind.
