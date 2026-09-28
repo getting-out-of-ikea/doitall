@@ -20,11 +20,6 @@ export default defineConfig({
 			adapter: adapter()
 		})
 	],
-	optimizeDeps: {
-		// livekit-client è una libreria browser pesante che a volte crea problemi
-		// con il pre-bundling di Vite in SvelteKit: la escludiamo dall'optimize.
-		exclude: ['livekit-client']
-	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

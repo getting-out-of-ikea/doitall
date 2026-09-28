@@ -1,4 +1,4 @@
-npm -prefix webapp run dev
+npm -prefix doitall run dev
 
 # Video App
 
