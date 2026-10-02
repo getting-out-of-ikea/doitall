@@ -5,7 +5,7 @@
 .env
 
 # Python
-__pycache__/
+pycache/
 *.py[cod]
 *$py.class
 *.so
@@ -42,7 +42,7 @@ coverage.xml
 .hypothesis/
 .mypy_cache/
 .ruff_cache/
-__pypackages__/
+pypackages/
 
 # JavaScript / Node
 node_modules/
