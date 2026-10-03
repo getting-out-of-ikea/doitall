@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import type { Participant, TrackPublication } from 'livekit-client';
+	import { Track, type Participant, type TrackPublication } from 'livekit-client';
 
 	let {
 		participant,
@@ -19,6 +19,12 @@
 	const isMuted = $derived(publication?.isMuted ?? true);
 	const label = $derived(participant.name || participant.identity);
 
+	// The `publication` prop is the camera track, so the microphone track must be
+	// looked up separately from the participant to actually play remote audio.
+	const audioTrack = $derived(
+		isLocal ? undefined : participant.getTrackPublication(Track.Source.Microphone)?.track
+	);
+
 	onMount(() => {
 		return () => {
 			track?.detach();
@@ -31,9 +37,18 @@
 
 		if (current.kind === 'video' && videoEl) {
 			current.attach(videoEl);
-		} else if (current.kind === 'audio' && audioEl && !isLocal) {
-			current.attach(audioEl);
 		}
+
+		return () => {
+			current.detach();
+		};
+	});
+
+	$effect(() => {
+		const current = audioTrack;
+		if (!current || !audioEl) return;
+
+		current.attach(audioEl);
 
 		return () => {
 			current.detach();
@@ -61,7 +76,7 @@
 	{/if}
 
 	{#if !isLocal}
-		<audio bind:this={audioEl} autoplay></audio>
+		<audio bind:this={audioEl} autoplay playsinline></audio>
 	{/if}
 
 	<div
