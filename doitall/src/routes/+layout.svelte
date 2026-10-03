@@ -1,11 +1,8 @@
 <script lang="ts">
 	import './layout.css';
-	import favicon from '$lib/assets/favicon.svg';
 
 	let { children, data } = $props();
 </script>
-
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
 
 <header class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
 	<a href="/" class="text-lg font-semibold text-gray-900">doitall</a>
