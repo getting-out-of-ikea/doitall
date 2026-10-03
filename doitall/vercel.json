@@ -1,11 +1,5 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"framework": "sveltekit",
-	"regions": ["fra1"],
-	"functions": {
-		"src/routes/api/livekit/token/+server.ts": {
-			"memory": 512,
-			"maxDuration": 10
-		}
-	}
+	"regions": ["fra1"]
 }
