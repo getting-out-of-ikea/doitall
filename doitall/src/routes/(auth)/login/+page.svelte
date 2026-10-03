@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { createClient } from '$lib/supabase/client';
 
 	let { data } = $props();
@@ -23,7 +24,8 @@
 			if (mode === 'login') {
 				const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 				if (signInError) throw signInError;
-				await goto('/');
+				const redirectTo = page.url.searchParams.get('redirectTo') ?? '/';
+				await goto(redirectTo);
 			} else {
 				const { error: signUpError } = await supabase.auth.signUp({ email, password });
 				if (signUpError) throw signUpError;
