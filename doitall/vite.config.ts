@@ -5,6 +5,10 @@ import adapter from '@sveltejs/adapter-auto';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
+	optimizeDeps: {
+		// livekit-client ships ESM that Vite's dep optimizer can mangle in SvelteKit.
+		exclude: ['livekit-client']
+	},
 	plugins: [
 		tailwindcss(),
 		sveltekit({
