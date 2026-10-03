@@ -1,7 +1,7 @@
 import { json, error } from '@sveltejs/kit';
 import { AccessToken } from 'livekit-server-sdk';
 import { LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET } from '$env/static/private';
-import { PUBLIC_LIVEKIT_URL } from '$env/static/public';
+import { env as publicEnv } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
 
 const ROOM_PATTERN = /^[a-zA-Z0-9_-]{1,64}$/;
@@ -48,6 +48,6 @@ export const POST: RequestHandler = async ({ request, locals: { user } }) => {
 
 	return json({
 		token: jwt,
-		url: PUBLIC_LIVEKIT_URL || LIVEKIT_URL
+		url: publicEnv.PUBLIC_LIVEKIT_URL || LIVEKIT_URL
 	});
 };

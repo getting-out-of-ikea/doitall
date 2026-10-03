@@ -13,7 +13,7 @@
 			type="text"
 			name="room"
 			placeholder="room-name"
-			pattern="[a-zA-Z0-9_-]{1,64}"
+			pattern="[a-zA-Z0-9_\-]&#123;1,64&#125;"
 			required
 			class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
 		/>
