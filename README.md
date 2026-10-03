@@ -1,4 +1,5 @@
 npm -prefix doitall run dev
+npm -prefix doitall run check
 
 # Video App
 
