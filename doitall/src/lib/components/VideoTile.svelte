@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { Track, type Participant, type TrackPublication } from 'livekit-client';
 
 	let {
@@ -25,33 +24,27 @@
 		isLocal ? undefined : participant.getTrackPublication(Track.Source.Microphone)?.track
 	);
 
-	onMount(() => {
-		return () => {
-			track?.detach();
-		};
-	});
-
 	$effect(() => {
 		const current = track;
-		if (!current) return;
+		const el = videoEl;
+		if (!current || !el || current.kind !== 'video') return;
 
-		if (current.kind === 'video' && videoEl) {
-			current.attach(videoEl);
-		}
+		current.attach(el);
 
 		return () => {
-			current.detach();
+			current.detach(el);
 		};
 	});
 
 	$effect(() => {
 		const current = audioTrack;
-		if (!current || !audioEl) return;
+		const el = audioEl;
+		if (!current || !el) return;
 
-		current.attach(audioEl);
+		current.attach(el);
 
 		return () => {
-			current.detach();
+			current.detach(el);
 		};
 	});
 </script>
