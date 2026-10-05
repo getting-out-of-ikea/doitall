@@ -2,11 +2,6 @@
 	import { APP_VERSION } from '$lib/version';
 
 	let { data } = $props();
-
-	function startCall() {
-		const room = crypto.randomUUID().slice(0, 8);
-		window.location.href = `/call/${encodeURIComponent(room)}`;
-	}
 </script>
 
 <svelte:head><title>doitall</title></svelte:head>
@@ -39,12 +34,4 @@
 			Join call
 		</button>
 	</form>
-
-	<button
-		type="button"
-		onclick={startCall}
-		class="mt-3 w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-	>
-		Start a new call
-	</button>
 </div>
