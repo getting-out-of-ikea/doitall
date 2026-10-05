@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { APP_VERSION } from '$lib/version';
+
 	let { data } = $props();
 </script>
 
@@ -6,6 +8,7 @@
 
 <div class="mx-auto max-w-2xl px-4 py-12">
 	<h1 class="text-3xl font-bold text-gray-900">Welcome, {data.user?.email}</h1>
+	<p class="mt-1 text-sm text-gray-400">Version {APP_VERSION}</p>
 	<p class="mt-4 text-gray-600">Start a call by entering a room name below.</p>
 
 	<form method="GET" action="/call/placeholder" class="mt-6 flex gap-2" onsubmit={(e) => e.preventDefault()}>
