@@ -1,6 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import { createClient } from '$lib/supabase/client';
+	import { APP_VERSION } from '$lib/version';
 
 	let { children, data } = $props();
 
@@ -22,7 +23,10 @@
 </script>
 
 <header class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
-	<a href="/" class="text-lg font-semibold text-gray-900">doitall</a>
+	<a href="/" class="flex items-baseline gap-1.5">
+		<span class="text-lg font-semibold text-gray-900">doitall</span>
+		<span class="text-xs text-gray-400">v{APP_VERSION}</span>
+	</a>
 	{#if user}
 		<div class="flex items-center gap-3">
 			<span class="text-sm text-gray-600">{user.email}</span>
