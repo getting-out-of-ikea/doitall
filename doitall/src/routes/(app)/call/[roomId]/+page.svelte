@@ -20,6 +20,7 @@
 	let status = $state<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
 	let errorMessage = $state<string | null>(null);
 	let participants = $state<Participant[]>([]);
+	let canPlaybackAudio = $state(true);
 	let remoteScreenShare = $state<{ participant: RemoteParticipant; publication: RemoteTrackPublication } | null>(
 		null
 	);
@@ -55,6 +56,12 @@
 		}
 	}
 
+	async function enableAudio() {
+		if (!session) return;
+		await session.room.startAudio();
+		canPlaybackAudio = session.room.canPlaybackAudio;
+	}
+
 	$effect(() => {
 		const name = roomId;
 		if (!name) return;
@@ -69,6 +76,7 @@
 
 		status = 'connecting';
 		errorMessage = null;
+		canPlaybackAudio = true;
 
 		connect(name)
 			.then((s) => {
@@ -79,12 +87,16 @@
 				current = s;
 				session = s;
 				status = 'connected';
+				canPlaybackAudio = s.room.canPlaybackAudio;
 
 				s.room
 					.on(RoomEvent.ParticipantConnected, refreshParticipants)
 					.on(RoomEvent.ParticipantDisconnected, refreshParticipants)
 					.on(RoomEvent.TrackSubscribed, handleTrackSubscribed)
 					.on(RoomEvent.TrackUnsubscribed, handleTrackUnsubscribed)
+					.on(RoomEvent.AudioPlaybackStatusChanged, () => {
+						canPlaybackAudio = s.room.canPlaybackAudio;
+					})
 					.on(RoomEvent.Disconnected, () => {
 						status = 'disconnected';
 					});
@@ -133,6 +145,22 @@
 			<a href="/" class="text-sm text-blue-600 hover:underline">Back to home</a>
 		</div>
 	{:else if session}
+		{#if !canPlaybackAudio}
+			<div
+				class="flex items-center justify-center gap-3 bg-amber-100 px-4 py-2 text-sm text-amber-900"
+				data-testid="audio-blocked-banner"
+			>
+				<span>The browser blocked audio playback.</span>
+				<button
+					type="button"
+					onclick={enableAudio}
+					class="rounded-md bg-amber-600 px-3 py-1 text-white hover:bg-amber-700"
+				>
+					Enable audio
+				</button>
+			</div>
+		{/if}
+
 		<div class="flex flex-1 overflow-hidden">
 			<div class="flex flex-1 flex-col overflow-hidden">
 				{#if remoteScreenShare}
