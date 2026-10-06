@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { page } from '$app/state';
 	import {
 		connect,
@@ -25,9 +24,9 @@
 		null
 	);
 
-	function refreshParticipants() {
-		if (!session) return;
-		participants = [session.room.localParticipant, ...session.room.remoteParticipants.values()];
+	function refreshParticipants(s: CallSession | null = session) {
+		if (!s) return;
+		participants = [s.room.localParticipant, ...s.room.remoteParticipants.values()];
 	}
 
 	function handleTrackSubscribed(
@@ -55,6 +54,13 @@
 		if (!name) return;
 
 		let cancelled = false;
+		// Track the connection locally so the cleanup does NOT read the reactive
+		// `session` state. Reading `session` here would make it a dependency of
+		// this effect, causing the effect to re-run (and tear down the room)
+		// every time `session` is assigned — which corrupts the connection for
+		// the already-present participant when someone else joins/reloads.
+		let current: CallSession | null = null;
+
 		status = 'connecting';
 		errorMessage = null;
 
@@ -64,6 +70,7 @@
 					void s.disconnect();
 					return;
 				}
+				current = s;
 				session = s;
 				status = 'connected';
 
@@ -76,7 +83,7 @@
 						status = 'disconnected';
 					});
 
-				refreshParticipants();
+				refreshParticipants(s);
 			})
 			.catch((err: unknown) => {
 				if (cancelled) return;
@@ -86,17 +93,12 @@
 
 		return () => {
 			cancelled = true;
-			if (session) {
-				void session.disconnect();
-				session = null;
+			if (current) {
+				void current.disconnect();
+				current = null;
 			}
+			session = null;
 		};
-	});
-
-	onDestroy(() => {
-		if (session) {
-			void session.disconnect();
-		}
 	});
 
 	async function leave() {
