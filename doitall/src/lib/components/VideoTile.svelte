@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Track, type Participant, type TrackPublication } from 'livekit-client';
+	import { RoomEvent, Track, type Participant, type TrackPublication } from 'livekit-client';
 
 	let {
 		participant,
@@ -14,18 +14,74 @@
 	let videoEl: HTMLVideoElement | undefined = $state();
 	let audioEl: HTMLAudioElement | undefined = $state();
 
-	const track = $derived(publication?.track);
-	const isMuted = $derived(publication?.isMuted ?? true);
-	const label = $derived(participant.name || participant.identity);
-
-	// The `publication` prop is the camera track, so the microphone track must be
-	// looked up separately from the participant to actually play remote audio.
-	const audioTrack = $derived(
-		isLocal ? undefined : participant.getTrackPublication(Track.Source.Microphone)?.track
-	);
+	// LiveKit publications are plain objects: `getTrackPublication(...)` keeps
+	// returning the *same* reference even when tracks are (un)published,
+	// (un)subscribed or (un)muted. Without an explicit reactive trigger, the
+	// tile would be stuck in the "not yet subscribed" state — i.e. no video and
+	// a permanently "muted" icon. Bump a local revision on every relevant
+	// participant event so the $derived values (and the attach effects below)
+	// recompute.
+	let revision = $state(0);
 
 	$effect(() => {
-		const current = track;
+		const p = participant;
+		const bump = () => {
+			revision++;
+		};
+
+		p.on(RoomEvent.TrackPublished, bump);
+		p.on(RoomEvent.TrackUnpublished, bump);
+		p.on(RoomEvent.TrackSubscribed, bump);
+		p.on(RoomEvent.TrackUnsubscribed, bump);
+		p.on(RoomEvent.TrackMuted, bump);
+		p.on(RoomEvent.TrackUnmuted, bump);
+		p.on(RoomEvent.TrackStreamStateChanged, bump);
+		p.on(RoomEvent.LocalTrackPublished, bump);
+		p.on(RoomEvent.LocalTrackUnpublished, bump);
+
+		return () => {
+			p.off(RoomEvent.TrackPublished, bump);
+			p.off(RoomEvent.TrackUnpublished, bump);
+			p.off(RoomEvent.TrackSubscribed, bump);
+			p.off(RoomEvent.TrackUnsubscribed, bump);
+			p.off(RoomEvent.TrackMuted, bump);
+			p.off(RoomEvent.TrackUnmuted, bump);
+			p.off(RoomEvent.TrackStreamStateChanged, bump);
+			p.off(RoomEvent.LocalTrackPublished, bump);
+			p.off(RoomEvent.LocalTrackUnpublished, bump);
+		};
+	});
+
+	// The <video> publication: an explicitly passed one (used for screen
+	// share) or the participant's camera by default.
+	const videoPub = $derived.by(() => {
+		revision;
+		return publication ?? participant.getTrackPublication(Track.Source.Camera);
+	});
+
+	// The <audio> publication: the microphone for regular camera tiles. Skipped
+	// for the local participant (the local <video> already carries the preview
+	// audio and is tagged `muted` to avoid an echo) and for screen-share tiles.
+	const audioPub = $derived.by(() => {
+		revision;
+		if (isLocal) return undefined;
+		if (videoPub?.source === Track.Source.ScreenShare) return undefined;
+		return participant.getTrackPublication(Track.Source.Microphone);
+	});
+
+	// Mute indicator is based on the microphone, not the camera.
+	const micPub = $derived.by(() => {
+		revision;
+		return participant.getTrackPublication(Track.Source.Microphone);
+	});
+
+	const videoTrack = $derived(videoPub?.track);
+	const audioTrack = $derived(audioPub?.track);
+	const isMuted = $derived(micPub?.isMuted ?? true);
+	const label = $derived(participant.name || participant.identity);
+
+	$effect(() => {
+		const current = videoTrack;
 		const el = videoEl;
 		if (!current || !el || current.kind !== 'video') return;
 
@@ -54,7 +110,7 @@
 	data-testid="video-tile"
 	data-identity={participant.identity}
 >
-	{#if track && track.kind === 'video'}
+	{#if videoTrack && videoTrack.kind === 'video'}
 		<video
 			bind:this={videoEl}
 			class="h-full w-full object-cover"
