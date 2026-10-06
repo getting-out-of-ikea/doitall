@@ -24,8 +24,14 @@
 		null
 	);
 
-	function refreshParticipants(s: CallSession | null = session) {
-		if (!s) return;
+	function refreshParticipants() {
+		if (!session) return;
+		participants = [session.room.localParticipant, ...session.room.remoteParticipants.values()];
+	}
+
+	// Non-reactive variant used inside the connect effect so that reading the
+	// reactive `session` state does not become an effect dependency.
+	function refreshFrom(s: CallSession) {
 		participants = [s.room.localParticipant, ...s.room.remoteParticipants.values()];
 	}
 
@@ -83,7 +89,7 @@
 						status = 'disconnected';
 					});
 
-				refreshParticipants(s);
+				refreshFrom(s);
 			})
 			.catch((err: unknown) => {
 				if (cancelled) return;
